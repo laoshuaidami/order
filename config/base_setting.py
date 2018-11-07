@@ -1,0 +1,4 @@
+
+SQLALCHEMY_ECHO = False
+SERVER_PORT = 8999
+DEBUG = False
