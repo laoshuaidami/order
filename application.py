@@ -1,7 +1,8 @@
-from flask import Flask
 from flask_script import Manager
+from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 import os
+
 
 class Application(Flask):
     def __init__(self,import_name,template_folder=None,root_path=None):
@@ -12,13 +13,14 @@ class Application(Flask):
 
         db.init_app(self)
 
+
 db = SQLAlchemy()
-app = Application(__name__,template_folder=os.getcwd()+"/web/templates/",root_path=os.getcwd())
+app = Application(__name__,template_folder=os.getcwd()+"/web/templates/", root_path=os.getcwd())
 manager = Manager(app)
 
 '''
 函数方法
 '''
-from common.libs.UrlManager import  UrlManager
-app.add_template_global(UrlManager.buildStaticUrl,'buildStaticUrl')
-app.add_template_global(UrlManager.buildUrl,'buildUrl')
+from common.libs.UrlManager import UrlManager
+app.add_template_global(UrlManager.buildStaticUrl, 'buildStaticUrl')
+app.add_template_global(UrlManager.buildUrl, 'buildUrl')
