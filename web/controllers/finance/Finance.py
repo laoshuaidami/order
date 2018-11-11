@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
-from flask import Blueprint,render_template
+from flask import Blueprint
+from common.libs.Helper import ops_render
 
 route_finance = Blueprint( 'finance_page',__name__ )
 
 @route_finance.route( "/index" )
 def index():
-    return render_template( "finance/index.html" )
+    return ops_render( "finance/index.html" )
 
 @route_finance.route( "/pay-info" )
 def payInfo():

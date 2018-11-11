@@ -7,6 +7,7 @@ from web.controllers.food.Food import route_food
 from web.controllers.member.Member import route_member
 from web.controllers.stat.Stat import route_stat
 from application import app
+from web.interceptors.AuthInterceptor import *
 
 app.register_blueprint(route_index,url_prefix = '/')
 app.register_blueprint(route_user,url_prefix = '/user')
