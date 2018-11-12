@@ -4,6 +4,7 @@ from common.libs.Helper import ops_render, iPagination, getCurrentDate
 from common.libs.UrlManager import UrlManager
 from common.libs.user.UserService import UserService
 from common.models.User import User
+from common.models.log.AppAccessLog import AppAccessLog
 from application import app, db
 from sqlalchemy import or_
 
@@ -55,9 +56,13 @@ def info():
     if uid < 1:
         return redirect(reback_url)
     info = User.query.filter_by(uid=uid).first()
+    info_access = AppAccessLog.query.filter_by(uid=uid).first()
     if not info:
         return redirect(reback_url)
+
     resp_data['info'] = info
+    resp_data['info_access'] = info_access
+
 
     return ops_render( "account/info.html",resp_data )
 

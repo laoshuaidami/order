@@ -38,6 +38,10 @@ def login():
         resp['code'] = -1
         resp['msg'] = "请输入正确的用户名和密码-2"
         return jsonify(resp)
+    if user_info.status != 1:
+        resp['code'] = -1
+        resp['msg'] = "账号异常，请联系管理员"
+        return jsonify(resp)
 
     response = make_response(json.dumps(resp))
     response.set_cookie(app.config['AUTH_COOKIE_NAME'], "%s#%s" % (
