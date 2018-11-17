@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-from flask import Blueprint, request
+from flask import Blueprint, request, redirect
 from common.libs.Helper import ops_render, iPagination
 from common.models.member.Member import Member
+from common.libs.UrlManager import UrlManager
 from application import app, db
 route_member = Blueprint( 'member_page',__name__ )
 
@@ -12,6 +13,13 @@ def index():
     req = request.values
     page = int(req['p'] )if ('p' in req and req['p']) else 1
     query = Member.query
+
+    if 'mix_kw' in req:
+        query = query.filter(Member.nickname.ilike("%{0}%".format(req['mix_kw'])))
+
+    if 'status' in req and int(req['status']) >-1:
+        query= query.filter(Member.status == int(req['status']))
+
     page_params = {
         'total':query.count(),
         'page_size':app.config['PAGE_SIZE'],
@@ -32,11 +40,32 @@ def index():
 
 @route_member.route( "/info" )
 def info():
-    return ops_render( "member/info.html" )
+    resp_data = {}
+    req = request.args
+    id = int(req.get("id",0))
+    reback_url = UrlManager.buildUrl("/member/index")
+    if id < 1 :
+        return redirect(reback_url)
+    info = Member.query.filter_by(id=id).first()
+    if not info:
+        return redirect(reback_url)
+    resp_data['info'] = info
+    resp_data['current'] = 'index'
+    return ops_render( "member/info.html",resp_data )
 
-@route_member.route( "/set" )
+
+@route_member.route( "/set" ,methods=['GET','POST'])
 def set():
-    return ops_render( "member/set.html" )
+    resp_data = {}
+    resp_data['current'] = 'index'
+    req = request.args
+    id = int(req.get('id',0))
+    reback_url = UrlManager.buildUrl('member/index')
+    if id < 1:
+        return redirect(reback_url)
+    info = Member.query.filter_by(id=id).first()
+    resp_data['info'] = info
+    return ops_render( "member/set.html", resp_data )
 
 
 @route_member.route( "/comment" )
