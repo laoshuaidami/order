@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-from flask import Blueprint, request, redirect
-from common.libs.Helper import ops_render, iPagination
+from flask import Blueprint, request, redirect, jsonify
+from common.libs.Helper import ops_render, iPagination, getCurrentDate
 from common.models.member.Member import Member
 from common.libs.UrlManager import UrlManager
 from application import app, db
@@ -56,16 +56,69 @@ def info():
 
 @route_member.route( "/set" ,methods=['GET','POST'])
 def set():
-    resp_data = {}
-    resp_data['current'] = 'index'
-    req = request.args
-    id = int(req.get('id',0))
-    reback_url = UrlManager.buildUrl('member/index')
-    if id < 1:
-        return redirect(reback_url)
-    info = Member.query.filter_by(id=id).first()
-    resp_data['info'] = info
-    return ops_render( "member/set.html", resp_data )
+    if request.method == "GET":
+        resp_data = {}
+        req = request.args
+        id = int(req.get('id',0))
+        reback_url = UrlManager.buildUrl('member/index')
+        if id < 1:
+            return redirect(reback_url)
+        info = Member.query.filter_by(id=id).first()
+        if not info:
+            return redirect(reback_url)
+        if info.status !=1:
+            return redirect(reback_url)
+        resp_data['info'] = info
+        resp_data['current'] = 'index'
+        return ops_render( "member/set.html", resp_data )
+    resp = {'code':200,'msg':"操作成功",'data':{}}
+    req = request.values
+    id = req['id'] if 'id' in req else 0
+    nickname = req['nickname'] if 'nickname' in req else ''
+    if nickname is None or len(nickname) < 1:
+        resp['code'] = -1
+        resp['msg'] = "请输入符合规范的用户名"
+        return jsonify(resp)
+    member_info = Member.query.filter_by(id=id).first()
+    if not member_info:
+        resp['code'] = -1
+        resp['msg'] = "指定的会员不存在"
+        return jsonify(resp)
+    member_info.nickname = nickname
+    member_info.updated_time = getCurrentDate()
+    db.session.add(member_info)
+    db.session.commit()
+    return jsonify(resp)
+
+
+@route_member.route( "/ops" ,methods=["POST"])
+def ops():
+    resp = {'code':200,'msg':"操作成功",'data':{}}
+    req = request.values
+    id = req['id'] if 'id' in req else 0
+    act = req['act'] if 'act' in req else ''
+    if not id:
+        resp['code'] = -1
+        resp['msg'] = "请选择要操作的账号"
+        return jsonify(resp)
+    if act not in ['remove','recover']:
+        resp['code'] = -1
+        resp['msg'] = "操作不允许"
+        return jsonify(resp)
+    member_info = Member.query.filter_by(id=id).first()
+    if not member_info:
+        resp['code'] = -1
+        resp['msg'] = "指定用户不存在"
+        return jsonify(resp)
+    if act == "remove":
+        member_info.status = 0
+    elif act == "recover":
+        member_info.status = 1
+    member_info.updated_time = getCurrentDate()
+    db.session.add(member_info)
+    db.session.commit()
+    return jsonify(resp)
+
 
 
 @route_member.route( "/comment" )

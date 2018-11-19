@@ -1,6 +1,4 @@
 ;
-
-
 var account_index_ops = {
     init:function () {
         this.eventBind();
@@ -21,23 +19,23 @@ var account_index_ops = {
         var callback={
             'ok':function () {
                 $.ajax({
-            url:common_ops.buildUrl("/account/ops"),
-            type:'POST',
-            data:{
-                act:act,
-                id:id
-            },
-            dataType:'json',
-            success:function (res) {
-                var callback = null;
-                if (res.code == 200) {
-                    callback = function () {
-                        window.location.href = window.location.href;
+                    url:common_ops.buildUrl("/account/ops"),
+                    type:'POST',
+                    data:{
+                        act:act,
+                        id:id
+                    },
+                    dataType:'json',
+                    success:function (res) {
+                        var callback = null;
+                        if (res.code == 200) {
+                            callback = function () {
+                                window.location.href = window.location.href;
+                            }
+                        }
+                        common_ops.alert(res.msg,callback);
                     }
-                }
-                common_ops.alert(res.msg,callback);
-            }
-        });
+                });
             },
             'cancel':null
         }
