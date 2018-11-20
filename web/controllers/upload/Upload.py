@@ -1,5 +1,7 @@
 from flask import Blueprint, request, jsonify
-from application import app
+from application import app, db
+from common.models.Image import Image
+from common.libs.UrlManager import UrlManager
 from common.libs.UploadService import UploadService
 import json, re
 
@@ -22,8 +24,11 @@ def ueditor():
             return jsonify(config_data)
     if action == "uploadimage":
         return uploadImage()
-
+    if action == "listimage":
+        return listImage()
     return "upload"
+
+
 def uploadImage():
     resp = {'state':'SUCCESS','url':'','title':'','original':''}
     file_target = request.files
@@ -31,5 +36,27 @@ def uploadImage():
     if upfile is None:
         resp['state'] = "上传失败"
         return jsonify(resp)
-    ret = UploadService.uploadbyfile(upfile)
+    ret = UploadService.uploadByFile(upfile)
+    if ret['code'] != 200:
+        resp['state'] = "上传失败" + ret['msg']
+        return jsonify(resp)
+    resp['url'] = UrlManager.buildImageUrl(ret['data']['file_key'])
+    return jsonify(resp)
+def listImage():
+    resp = {'state':'SUCCESS','list':[],'start':0,'total':0}
+    req = request.values
+    start = int(req['start']) if 'start' in req else 0
+    page_size = int(req['size']) if 'size' in req else 20
+    query = Image.query
+    if start > 0:
+        query = query.filter(Image.id < start)
+    list = query.order_by(Image.id.desc()).limit(page_size).all()
+    images = []
+    if list:
+        for item in list:
+            images.append({'url':UrlManager.buildImageUrl(item.file_key)})
+            start = item.id
+    resp['list'] = images
+    resp['start'] = start
+    resp['total'] = len(images)
     return jsonify(resp)
