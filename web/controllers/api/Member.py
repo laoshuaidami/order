@@ -1,11 +1,12 @@
 from web.controllers.api import route_api
-from flask import request, jsonify
+from flask import request, jsonify, g
 from application import app, db
 import requests, json
 from common.models.member.Member import Member
 from common.models.member.OauthMemberBind import OauthMemberBind
 from common.libs.Helper import getCurrentDate
 from common.libs.member.MemberService import MemberService
+from common.models.food.WxShareHistory import WxShareHistory
 
 
 @route_api.route("/member/login", methods=["GET", "POST"])
@@ -39,7 +40,7 @@ def login():
 
         model_bind = OauthMemberBind()
         model_bind.member_id = model_member.id
-        model_bind.tpye = 1
+        model_bind.type = 1
         model_bind.openid = openid
         model_bind.extra = ''
         model_bind.updated_time = model_bind.created_time = getCurrentDate()
@@ -69,7 +70,7 @@ def checkReg():
         resp['msg'] = "调用微信出错"
         return jsonify(resp)
 
-    bind_info = OauthMemberBind.query.filter_by(openid=openid).first()
+    bind_info = OauthMemberBind.query.filter_by(openid=openid,type=1).first()
     if not bind_info:
         resp['code'] = -1
         resp['msg'] = "未绑定"
@@ -82,4 +83,20 @@ def checkReg():
         return jsonify(resp)
     token = "%s#%s"%(MemberService.geneAuthcode(member_info),member_info.id)
     resp['data'] = {'token':token}
+    return jsonify(resp)
+
+
+@route_api.route("/member/share",methods=["POST"])
+def memberShare():
+    resp = {'code': 200, 'msg': "操作成功", 'data': {}}
+    req = request.values
+    url = req['url'] if 'url' in req else ''
+    member_info = g.member_info
+    model_share = WxShareHistory()
+    if member_info:
+        model_share.member_id = member_info.id
+    model_share.share_url = url
+    model_share.created_time = getCurrentDate()
+    db.session.add(model_share)
+    db.session.commit()
     return jsonify(resp)

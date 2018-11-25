@@ -15,6 +15,9 @@ def before_request():
     if pattern.match(path):
         return
 
+    if '/api' in path:
+        return
+
     user_info = check_login()
     g.current_user = None
     if user_info:
@@ -41,7 +44,7 @@ def check_login():
         return False
 
     try:
-        user_info = User.query.filter_by(uid = auth_info[1]).first()
+        user_info = User.query.filter_by(uid=auth_info[1]).first()
     except Exception:
         return False
 

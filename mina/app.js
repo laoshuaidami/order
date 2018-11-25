@@ -54,7 +54,8 @@ App({
     },
     getRequestHeader:function(){
         return {
-            'content-type': 'application/x-www-form-urlencoded'
+            'content-type': 'application/x-www-form-urlencoded',
+            'Authorization': this.getCache( "token" )
         }
     },
     buildUrl:function (path,params) {
@@ -72,7 +73,7 @@ App({
     getCache:function (key) {
         var value = undefined;
         try{
-            var value = wx.getCache(key);
+            var value = wx.getStorageSync(key);
         }catch (e) {
         }
         return value;
